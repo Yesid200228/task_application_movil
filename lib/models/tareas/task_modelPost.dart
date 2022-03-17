@@ -7,8 +7,8 @@ String taskModelToJson(TaskModelPost data) => json.encode(data.toJson());
 
 class TaskModelPost {
     TaskModelPost({
-        this.name,
-        this.description,
+        this.name='',
+        this.description='',
     });
 
     String name;

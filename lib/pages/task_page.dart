@@ -1,30 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:task_application/models/tareas/task_modelGet.dart';
 import 'package:task_application/models/tareas/task_modelPost.dart';
 import 'package:task_application/providers/tasks_providers.dart';
 
 class TaskPage extends StatefulWidget {
+  // TaskPage({Key key, @required this.animalCard}) : super(key: key);
+
+  final TaskModelGet taskModelGet;
+  TaskPage({
+    this.taskModelGet,
+  });
+
   @override
   State<TaskPage> createState() => _TaskPageState();
 }
 
 class _TaskPageState extends State<TaskPage> {
+
+
   final formKey = GlobalKey<FormState>();
   final scaffoldkey = GlobalKey<ScaffoldState>();
   final tasksProvider = new TasksProvider();
 
+  
   TaskModelPost taskModelPost = new TaskModelPost();
+  TaskModelGet taskModelGet = new TaskModelGet();
+
   bool _guardando = false;
 
+  TextStyle colores = TextStyle(color: Color.fromRGBO(238, 238, 238, 1)) ;
 
   @override
   Widget build(BuildContext context) {
-    final TaskModelPost taskData = ModalRoute.of(context).settings.arguments;
+
+    final TaskModelGet taskDataGet = ModalRoute.of(context).settings.arguments;
+
+    // bool tipo = ModalRoute.of(context).settings.arguments;
+
+      taskModelGet = taskDataGet;
+
 
     return Scaffold(
       key: scaffoldkey,
       appBar: AppBar(
         backgroundColor: Color.fromRGBO(0, 173, 181, 1),
-        title: Text('Crear tareas',style: TextStyle(color: Color.fromRGBO(238, 238, 238, 1)),),
+        title: taskDataGet == null ?Text('Crear Tarea',style: colores): Text('Actualizar Tarea'),
         actions: [
         ],
         centerTitle: true,
@@ -41,20 +61,21 @@ class _TaskPageState extends State<TaskPage> {
                 Divider(),
                 _crearDescripcion(),
                 SizedBox(height: 20,),
+                _crearDisponible(context),
+                SizedBox(height: 20,),
                 _botonAgregar(),
               ],
             ),
           ),
         ),
       ),
-
-
     );
   }
 
   Widget _crearName(){
     return TextFormField(
       textCapitalization: TextCapitalization.sentences,
+      initialValue: taskModelGet == null ? taskModelGet :taskModelGet.name ,
       decoration: InputDecoration(
         labelText: 'Nombre de la tarea',
         focusedBorder: UnderlineInputBorder(
@@ -66,7 +87,7 @@ class _TaskPageState extends State<TaskPage> {
           color: Color.fromRGBO(57, 62, 70, 1)
         ),
       ),
-      onSaved: (value) => taskModelPost.name = value,
+      onSaved: (value) => taskModelGet.name == null ? taskModelPost.name=value: taskModelGet.name=value,
       validator: (value){
         if (value.length<1) {
           if (value.length > 45) {
@@ -83,6 +104,7 @@ class _TaskPageState extends State<TaskPage> {
   Widget _crearDescripcion(){
     return TextFormField(
       textCapitalization: TextCapitalization.sentences,
+      initialValue: taskModelGet == null ? '' :taskModelGet.description ,
       decoration: InputDecoration(
         labelText: 'Descripcion',
         focusedBorder: UnderlineInputBorder(
@@ -94,7 +116,7 @@ class _TaskPageState extends State<TaskPage> {
           color: Color.fromRGBO(57, 62, 70, 1)
         ),
       ),
-      onSaved: (value) => taskModelPost.description = value,
+      onSaved: (value) => taskModelGet.description == null ? taskModelPost.description=value: taskModelGet.description=value,
       validator: (value){
         if (value.length>255) {
             return 'La descripcion no puede contener mas de 255 caracteres';
@@ -121,30 +143,50 @@ class _TaskPageState extends State<TaskPage> {
             children: [
               Icon(Icons.save,color: Color.fromRGBO(238, 238, 238, 1)),
               SizedBox(width: 10,),
-              Text('Guardar',style: TextStyle(color: Color.fromRGBO(238, 238, 238, 1)),)
+              Text('Guardar',style: colores,)
             ],
           ),
+          // onPressed: (_guardando) ? null : _submit,
           onPressed: _submit,
+
         ),
       )
     );
-    
+  }
+
+    Widget _crearDisponible(BuildContext context){
+      // print(tipo.toString());
+      if (taskModelGet==null) {
+        return Container();
+      }else{
+        return SwitchListTile(
+          value: taskModelGet.status,
+          title: Text('Status'),
+          activeColor:  Color.fromRGBO(57, 62, 70, 1),
+          onChanged: (value) => setState((){  
+            taskModelGet.status = value;
+          })
+        );
+
+      }
   }
 
   void _submit(){
-    setState(() {_guardando = true;});
-
     if(!formKey.currentState.validate()) return;
     formKey.currentState.save();
-
-
-      tasksProvider.crearTask(taskModelPost);
-    // if (task.id == null) {
-    // }else{
-    //   // para mandarlo a edtiar
-    // }
     
-    mostrarSnacbar('Tarea guardada');
+    setState(() {_guardando = true;});
+
+    if (taskModelGet != null) {
+
+      // print(taskModelGetToJson(taskModelGet));
+      tasksProvider.editartask(taskModelGet);
+
+    }else{
+      //Registrar
+      tasksProvider.crearTask(taskModelPost);         
+    }
+    
     Navigator.pop(context);
 
   }

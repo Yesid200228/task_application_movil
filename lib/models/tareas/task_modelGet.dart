@@ -11,14 +11,14 @@ String taskModelGetToJson(TaskModelGet data) => json.encode(data.toJson());
 class TaskModelGet {
     TaskModelGet({
         this.id,
-        this.name,
-        this.description,
-        this.status,
+        this.name = '' ,
+        this.description= '',
+        this.status=true,
     });
 
     String id;
-    String name;
-    String description;
+    String name ;
+    String description ;
     bool status;
 
     factory TaskModelGet.fromJson(Map<String, dynamic> json) => TaskModelGet(
